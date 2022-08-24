@@ -79,9 +79,9 @@ JRE + 컴파일러(javac) + 패키징(jar) + 배포
 
 실행 엔진
 
- 인터프리터 : 바이트 코드 명령어를 **하나씩** 해석하고 실행
+인터프리터 : 바이트 코드 명령어를 **하나씩** 해석하고 실행
 
- JIT 컴파일러 : 바이트 코드 **전체**를 바이너리 코드로 변경, 하나씩 인터프리팅을 하지 않기 때문에 속도가 빠르다.
+JIT 컴파일러 : 반복되는 바이트코드를 캐싱한 다음, 해당 바이트 코드를 컴파일할 때 캐싱된 바이트코드르 불러온다.
 
 ### JVM 메모리 구조
 
@@ -137,53 +137,48 @@ JRE + 컴파일러(javac) + 패키징(jar) + 배포
       - runtime에 JVM에 의해 채워진다.
       - Java SE library classes, methods
 
+## JAVA 11
+
+- 모듈(Modularity)
+- var keyword
+  - 람다식에서 var 사용 가능
+- String 메서드
+  - isBlank()
+  - lines()
+  - repeat(int n)
+  - stripLeading()
+- 파일 관련 메서드 추가
+
+  - Files.writeString()
+  - Files.readString()
+  - Files.isSameFile()
+
+- Arrays.asList()
+- java 소스 파일을 컴파일하지 않고 직접 실행 가능
+
+## Java 8
+
+- 인터페이스 default 메서드, static 메서드
+
+- 메서드 참조
+
+  - 정적 메서드 참조
+    - `메서드보유클래스::메서드이름`
+  - 인스턴스 메서드 참조
+    - `메서드보유인스턴스::메서드이름`
+  - 특정 타입의 인스턴스 메서드 참조
+    - `메서드보유타입명::메서드이름`
+  - 생성자 참조
+    - `클래스이름::new`
+
+- Optional
+
+## Java 17
+
+- Shield Class
+
 ### JDK, JRE, JVM 질문
 
 - 컴파일 언어와 인터프리터 언어의 차이점?
 - 개발자가 작성하고 컴파일한 클래스 파일은 어느 시점에 JVM 메모리에 로드 되는가?
-
-
-
-
-
-## JAVA 11
-
-* 모듈(Modularity)
-* var keyword
-  * 람다식에서 var 사용 가능
-* String 메서드
-  * isBlank()
-  * lines()
-  * repeat(int n)
-  * stripLeading()
-* 파일 관련 메서드 추가
-  * Files.writeString()
-  * Files.readString()
-  * Files.isSameFile()
-
-* Arrays.asList()
-* java 소스 파일을 컴파일하지 않고 직접 실행 가능
-
-
-
-## Java 8
-
-* 인터페이스 default 메서드, static 메서드
-
-* 메서드 참조
-
-  * 정적 메서드 참조
-    * `메서드보유클래스::메서드이름`
-  * 인스턴스 메서드 참조
-    * `메서드보유인스턴스::메서드이름`
-  * 특정 타입의 인스턴스 메서드 참조
-    * `메서드보유타입명::메서드이름`
-  * 생성자 참조
-    * `클래스이름::new`
-
-* Optional
-
-  
-
-
-
+- 일반적으로 가비지 컬렉터는 힙에 있는 모든 객체들을 확인하는 절차를 거친다. 이것은 성능 문제를 유발할 수 있는데, 이것을 극복하기위해 자바는 어떤 방법을 사용하고 있는가?

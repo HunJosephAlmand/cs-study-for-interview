@@ -24,7 +24,7 @@
 - 대표 예시
   - Tomcat
 - 컨테이너를 실행하면, ServletContext라는 객체를 만든다.
--  ServletContext
+- ServletContext
   - 서버 또는 컨테이너의 메모리 역할을 한다.
   - 설정 파일(web.xml 등)을 읽어  컴포넌트들을 메모리에 로드한다.
     - 서블릿
@@ -40,15 +40,23 @@
       - 설정이 적용된 컨테이너가 관련 이벤트가 발생했을 때 해당 이벤트 리스너 함수를 호출한다.
 
 - 동작과정
+
   - 컨테이너가 요청을 받음
+
   - 요청을 기반으로 HttpServletRequest와 HttpServletResponse 객체를 생성
+
   - 조건에 매핑되는 servlet 객체의 service()를 호출하면서 매개변수로 위의 두 객체를 전달.
+
   - service 메서드에서 HTTP method에 맞는 doXXX() 메서드 호출
+
   - 컨테이너가 service 메서드 호출을 끝내면, 응답을 클라이언트에게 전송하고, HttpServletRequest와 HttpServletResponse 객체를 gc 한다.
+
   - 상태 기반 HTTP 요청 응답이 필요한 경우 HttpSession을 활용
+
     - 보통 cookie를 통해 구현
     - JSESSIONID 값을 key로 삼아 필요한 데이터들을 저장한다.
-  - 
+
+    
 
 ## Spring 기본
 
@@ -59,7 +67,6 @@
   - IoC(DI)
     - 실행 흐름을 프레임워크 사용자가 아닌 프레임워크가 쥐고 있음
     - 개발자의 소스 코드를 호출하는 책임은 개발자 코드가 아닌 프레임워크
-    - 
   -  AOP
   - 기타 기능(ApplicationContext)
     - Resource 관리
@@ -109,10 +116,17 @@
 - IoC의 종류 중 하나
 - 의존성을 생성자/setter 등을 통해 '외부로부터' 주입받는다.
   - 스프링에서는 이 외부가 IoC Container
+- 필드 주입
+  - 주입을 해주는 컨테이너 가 없으면 테스트 하기 힘들다.=
+- setter
+  - 선택적 주입
 
 ## Bean, Component
 
 - `@Component` `@Service` `@Controller`
+  - @Repository
+    - 예외 발생을 SpringData 관련 예외로 통합해서 처리한다.
+    - DataIntegrityViolationException
 
 ## VO vs DTO vs DAO
 
@@ -137,3 +151,11 @@
 - 비즈니스 로직을 가진 애플리케이션 계층의 코드가 특정 db와 결합되지 않는 코드
 - 데이터베이스의 데이터에 접근하는 책임을 가진 객체
 - DB CRUD 구현
+
+
+
+## 질문
+
+1.DispatcherServlet의 WebApplicationContext에 등록되는 Bean 몇 가지를 이야기해주세요.
+
+2, Spring Boot를 사용하는 이유를 알려주세요

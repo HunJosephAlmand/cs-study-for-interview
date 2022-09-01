@@ -14,6 +14,8 @@
   - 스프링 클라우드
   - etc . . . (공식 사이트의 project 참조)
 
+
+
 **스프링 프레임워크**
 
 - 핵심 기술: 스프링 DI 컨테이너, AOP, 이벤트, 기타
@@ -59,7 +61,7 @@
   - Controller
     - 모델과 뷰를 연결, 통제해주는 역할
     - 모델과 뷰에 대한 정보를 앎
-- MVC1
+- MV or MVC1
   - 클라이언트 <--HTTP 요청 / 응답 --> WAS
   - WAS
     - JSP(View + Controller) <--> JavaBean(Model)
@@ -178,10 +180,9 @@
     - **애노테이션 부가 기능**: 컴포넌트 스캔 외에 지원하는 기능
       - `@Controller`: 스프링 MVC 컨트롤러로 인식
       - `@Repository`: 스프링 데이터 접근 계층으로 인식하고, 데이터 계층의 예외를 스프링 예외로 변환
+        - 안 붙이면 어떻게 되지?
       - `@Configuration`: 스프링 설정 정보로 인식, 스프링 빈이 싱글톤을 유지하도록 추가 처리함
       - `@Service`: 특별한 처리는 없으나 개발자 간 정보 전달에 용이
-
-  
 
   
 
@@ -193,3 +194,23 @@
   - VO는 불변
 - DAO; Data Access Object
   - 데이터 접근 객체
+
+
+
+## 추가
+
+-  RootApplicationContext
+- WebApplicationContext
+  - MVC 컴포넌트
+    - 컨트롤러 등
+  - 핸들러 어댑터
+  - 필터의 경우?
+    - 서블릿 필터 체인
+- CoC
+- 서블릿 컨테이너
+  - 서블릿 관리
+  - tomcat 등
+  - 애플리케이션 앞단에 위치
+- 앞단은 서블릿 컨테이너(실제 요청 처리) - DispatcherServlet
+  - WebAppContext의 컨트롤러를 호출
+- 스프링 컨테이너는 자원 처리 / 메시지 처리

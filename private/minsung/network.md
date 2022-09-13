@@ -277,3 +277,161 @@
     * anycast
       * 가장 가까운 노드랑 통신 방식
       * ipv6
+
+
+
+# HTTP
+
+* TCP /IP 위에서 동작하는 클라이언트 요청/응답 프로토콜
+* 비연결성
+* 무상태
+* 서버/클라이언트 구조
+* MIME TYPE 
+  * 주타입 / 서브타입
+
+## METHOD
+
+#### GET
+
+* 리소스 가져오기 요청
+
+* 멱등성 O
+* Cache
+* QueryParameter로 서버에 원하는 요청 데이터 구체화
+
+#### POST
+
+* 서버로 데이터 전송 => 서버의 상태 변경
+* 멱등성 X
+
+#### PUT
+
+* 요청 페이로드를 통해 새로운 리소스를 생성하거나, 대상 리소스를 나타내는 데이터 변경
+
+* 멱등성 O
+
+* PUT 요청을 통해 리소스가 성공적으로 생성되었을 경우 201 응답을 보내야 한다.
+
+  ```http
+  HTTP/1.1 201 Created
+  Content-Location: /new.html
+  ```
+
+* 이미 저장된 리소스를 성공적으로 수정했을 경우 200(OK) 또는 204 응답을 보내야 한다.
+
+  ```http
+  HTTP/1.1 204 No Content
+  Content-Location: /existing.html
+  ```
+
+#### PATCH
+
+* 리소스의 부분적인 수정
+  * PUT은 리소스의 완전한 교체만 허용
+* 멱등성 X
+  * 하지만 PUT처럼 사용할 경우 멱등성 가지게 할 수 있음
+  * 특정 데이터 += 10
+
+#### DELETE
+
+* 지정한 리소스 삭제
+* 멱등성 O
+
+#### HEAD
+
+* 특정 리소스를 GET 메서드로 요청했을 때 돌아올 헤더 요청
+* 본문 X
+* 멱등성 O
+* Content-Length 같은 컨텐츠 설명 헤더
+
+#### OPTIONS
+
+* 목표 리소스와의 통신 옵션을 설명하기 위해 사용
+* CORS에서 preflight 요청을 할 때 사용
+  * Access-Control-Request-Headers
+    * 실제 요청 시 전달될 헤더들을 명시
+  * Access-Control-Request-Method
+    * 실제 요청 메서드를 명시
+  * 서버는 응답으로 Access-Control-Allow-(Methods, Headers, Origin)을 통해 어떤 CORS 요청이 가능한 지 알려준다.
+
+#### TRACE
+
+* loop-back 디버깅 테스트용
+* 멱등성 O
+
+#### CONNECT
+
+* 리소스에 대한 양방향 연결을 위한 메서드
+* SSL 웹사이트 접속에 사용
+  * 원하는 목적지에 대한 TCP 연결을 위해 프록시 서버에 CONNECT 요청
+  * 프록시 서버는 클라이언트를 대신하여 연결 수립
+* 홉바이홉
+* 멱등성 X
+
+## STATUS CODE
+
+#### 1XX Informational
+
+#### 2xx Success
+
+* 200 OK
+  * 요청이 성공했음
+* 201 Created
+  * 자원 요청이 성공적으로 수행되었음을 암시(Post)
+  * 요청 메시지의 URL이나 Location 헤더에 생성된 자원 위치 표기
+
+#### 3xx Redirect
+
+* 301 Moved Permanently
+  * 원래 이 URL에 존재하는 리소스가 다른 URL로 이동했음
+* 304 Not Modified
+  * 리소스가 수정되지 않았으므로, 캐시된 자원을 사용하라는 redirect
+  * If-Modified-Since, If-None-Match 등의 요청 헤더가 있을 때 응다
+
+
+
+#### 4xx Client Error
+
+* 400 Bad Request
+  * 클라이언트의 잘못된 요청 구문, 유효하지 않은 메시지 등을 감지해 요청을 처리하지 않는 다는 것을 의미
+
+* 401 Unauthorized
+
+  * 해당 리소스에 대한 유효한 인증 자격 증명이 없어서 보내는 메시지
+
+  * WWW-Authenticate 를 통해 인증 방법에 대한 정보 응답
+
+  * 인증을 할 수 있다.(인증 양식에 맞춰서 유효할 경우 요청 성공)
+
+  * ```http
+    HTTP/1.1 401 Unauthorized
+    Date: Wed, 21 Oct 2015 07:28:00 GMT
+    WWW-Authenticate: Basic realm="Access to staging site"
+    ```
+
+* 403 Forbidden
+  * 서버에 요청이 전달되었으나, 권한이 없어서 거절되었음을 전송
+  * 재인증을 하더라도 접속 거절
+* 404 Not Found
+  * 서버가 요청받은 리소스를 찾을 수 없다.
+  * broken-link dead link
+
+#### 5xx Server Error
+
+* 500 Internal Server Error
+  * 서버의 에러를 총칭하는 응답
+
+
+
+## HTTP 1.1 VS HTTP 2.0
+
+* HTTP 2.0은 chunked transfer encoding을 사용하지 않는다.
+* HTTP 2.0은 같은 서버에 대한 하나의 커넥션으로 여러 요청을 처리한다. (멀티플렉싱)
+  * 각 요청 패킷을 쪼개서 stream으로 처리한다. 각 요청마다 고유의 stream id가 부여된다.
+* HTTP 2.0은 요청 파이프라인을 사용하지 않는다.
+* PUSH를 통해 하나의 요청이후에 필요한 자원들을 예측해서 응답에 미리 담아서 준다.
+  * index.html => script.js, main.css 등 파일과 같이 응답
+* 대부분의 브라우저에서 HTTPS를 강제한다.
+
+
+

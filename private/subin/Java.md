@@ -6,10 +6,11 @@ mindmap-plugin: basic
 
 # Java
 
-## JDK : java Development Kit
+## JDK : java Development Kit ^1c62629b-6f93-fed2
 - Java 개발 목적
 - 특징
    - JRE를 포함하고 있음 (JDK ⊃ JRE)
+   - javac가 있다
 - 구성
    - JVM
    - 자바 클래스 라이브러리
@@ -19,9 +20,8 @@ mindmap-plugin: basic
 - Java 실행 목적
 - 특징
    - Java용 SDK(Software Development Kit)
-   - javac가 있다?
 
-## JVM
+## JVM ^afca81fa-0cb1-26b9
 - 메모리 구조
 - JVM이란?
    - 자바와 운영체제 사이에서 중개자 역할을 수행
@@ -29,7 +29,7 @@ mindmap-plugin: basic
    - 가비지 컬렉터를 사용한 메모리 관리 자동 수행
    - 다른 하드웨어와 다르게 레지스터 기반이 아닌 스택 기반으로 동작
 - 구조
-   - Class Loader
+   - Class Loader ^6f801167-65a9-8884
       - 런타임 시에 동적으로 클래스를 로드
       - JVM 내로 클래스 파일을 로드하고, 링크를 통해 배치하는 작업을 수행하는 모듈
    - Execution Engine
@@ -56,21 +56,71 @@ mindmap-plugin: basic
             - 자바 외 언어로 작성된 네이티브 코드를 위한 메모리 영역
       - 참고 : https://steady-coding.tistory.com/305
 
-## GC (Garbage Collector)
+## GC (Garbage Collector) ^a51c5b6a-3884-76d0
 - GC란?
    - 힙 메모리 영역에 생성된 객체들 중에서 참조되지 않은 객체들을 탐색 후 제거하는 역할
+   - Java의 GC는 2가지 가정에 기반해 설계됨 (weak generational hypothesis)
+      - 대부분의 객체는 금방 unreachable 상태가 된다
+      - 오래된 객체에서 최근 생긴 객체로의 참조는 거의 없다.
+   - 2가지 가정에 의해 설계된 Heap 메모리 구조는 Young/Old 영역으로 나뉨
+      - Young
+         - 새로운 객체가 생성되는 위치
+         - Young 영역에서 Old 영역으로 객체가 이동하는 것을 `Promotion` 되었다고 표현
+      - Old
+         - Young 영역에서 임계치 보다 오래 살아남은 객체들이 넘어오는 영역
+         - 이 영역에서 일어나는 GC를 `Major GC` 또는 `Full GC`라고 한다.
+            그럴 경우에는 STW(=Stop The World)가 발생해 JVM이 GC 스레드 빼고 모두 일시적으로 멈추는 현상 발생
+         - 일반적으로 GC 튜닝을 한다는 것은 Old 영역에서 발생하는 STW 시간을 단축시키는 것을 의미
+         - 512 바이트 chunk의 card table 존재
+            - old 객체에서 young 객체로의 참조 정보를 담고 있어
+               Minor GC 실행시  메모리 회수 대상인지 아닌지를 빠르게 판단
+               - 약간의 overhead가 발생하지만 전반적인 GC 시간을 줄여준다
+      - Permanent Generation
+         - Old 영역에서도 GC에서 오래 살아남은 객체들이 이동
+            - Major GC로 unreachable한 객체를 회수
+            - Major GC이기 때문에 STW가 발생
 - 동작과정
-- 종류
+   - Minor GC 동작
+      - Copy & Scavenge 알고리즘
+         - 속도가 빠르고 작은 크키의 메모리의 GC에 효과적
+      - Young 영역에 있는 객체가 GC에서 살아 남을 때마다
+         `Tenuring Threshold` 값이 1씩 증가하다가 살아 남은 횟수가 Max 값에 도달하면 Old 영역으로 Promotion되는 것
+         - 기본 Max 값은 31이고, 이는 MaxTenuringThreshold 옵션을 통해 변경 가능
+   - Major GC(Full GC)
+      - Major GC를 수행할 때 어디에 초점을 맞추느냐에 따라 2가지 방식으로 구분할 수 있다
+         - Throughput Collector
+            - GC를 수행할 때 모든 리소스를 투입해서 GC를 빨리 끝내자. STW 시간을 단축시키는 것이 목적
+            - Serial GC, Parallel GC, Parallel Old GC
+         - Low Pause(Latency) Collector
+            - STW가 발생을 분산시켜 체감 pause time을 줄이자. GC 수행과 동시에 작업도 수행할 수 있다.
+            - CMS, G1 GC
+- 종류 ^6063678a-85ed-85ef
    - Serial GC
+      - Minor GC & Major GC를 하나의 스레드로 작업
    - Parallel GC
+      - Minor GC는 멀티 스레드로 작업하고 Major GC는 하나의 스레드로 작업
    - Parallel Old GC
+      - Minor GC & Major GC 모두 멀티 스레드로 작업한다.
+         - Multi CPU에 유리
+         - Old GC의 처리량이 증가
    - CMS GC (Concurrent Mark-Sweep)
+      - Low Latency GC로 Compaction을 기본적으로 수행하지 않다가 단편화가 심해지면 수행
    - G1 GC
       - Java 9 버전부터 기본 GC 방식으로 채택
+      - CMS의 문제점을 개선하기 위해 만들어진 GC로 위의 4가지 방법과 구조가 다르다.
+         - 물리적 Generation 구분을 없애고
+            전체 Heap을 1~32MB 단위의 Region들로 재편 (약 2048개의 Regions들로 나눌수있음)
+            - 각 Region은 상태에 따라 역할이 동적으로 부여
+      - 역할
+         - Humongous 추가
+            - Region 크기의 50%가 넘는 큰 객체를 저장하기 위한 영역
+            - GC 동작이 최적으로 동작하지 않는다
+         - Available / Unused 추가
+            - 아직 사용되지 않는 영역
    - 참고 : https://s2choco.tistory.com/14
 
 ## Java의 컴파일 과정
-- 과정
+- 과정 ^8feb6dd4-2470-fca8
    - java 파일 작성 → .java
    - 자바 컴파일러가 .java 컴파일 → .class
    - JVM 클래스로더에게 전달
@@ -90,10 +140,12 @@ mindmap-plugin: basic
          - 바이트 코드 전체를 컴파일하여 바이너리 코드로 변경하고 이후에는 해당 메서드를 더이상 인터프리팅 하지 않고, 바이너리 코드로 직접 실행
          - 하나씩 인터프리팅하여 실행x 바이트 코드 전체가 컴파일된 바이너리 코드를 실행 o
          - 따라서 전체적인 실행속도는 인터프리팅 방식보다 빠름
+   - 질문
+      - 인터프리터와 JIT 컴파일러는 둘 다 실행되는건지 택 1인지?
    - 참고
       - https://gyoogle.dev/blog/computer-language/Java/컴파일%20과정.html
 
-## 컴파일 언어 vs 인터프리터 언어
+## 컴파일 언어 vs 인터프리터 언어 ^97cad3cd-9303-a13a
 - 컴파일언어
    - 정의
    - 특징
@@ -116,7 +168,7 @@ mindmap-plugin: basic
    - 자바 바이트코드는 자바 인터프리터를 기계어로 번역되어 한줄씩 실행된다
    - 처음에는 인터프리터 언어로써 사용되다가 성능향상을 위해 JIT 컴파일러를 추가하여 컴파일 언어의 장점을 가져왔다고 한다
 
-## Java LTS 버전
+## Java LTS 버전 ^037e2495-b631-4e82
 - Java 8
    - 함수형프로그래밍 지원
       - 람다표현식
@@ -142,3 +194,156 @@ mindmap-plugin: basic
    - sealed class
    - instance of 변수
    - 스위치 문법 람다
+
+## 문법
+- Reflection API
+   - 정의
+      - 객체를 통해 클래스의 정보를 분석해 내는 프로그램 기법
+         - 원래는 컴파일러가 있는 자바는 구체적인 클래스를 모르면 해당 클래스의 정보에 접근할 수 없다
+   - 특징
+      - Reflection은 애플리케이션 개발보다는 프레임워크나 라이브러리에서 많이 사용된다
+         - intellij의 자동완성
+         - Spring Container의 BeanFactory
+         - jackson 라이브러리
+         - Hibernate 등
+      - 즉 구체적이지 않은 객체를 받아서 동적으로 해결해주는 API
+      - 어떤 정보를 가져올 수 있을까?
+         - Class
+         - Constructor
+         - Method
+         - Field
+   - 장단점
+      - 장점
+         - 클래스의 이름만으로도 해당 클래스의 정보를 가져올 수 있다.
+      - 단점
+         - 성능 오버헤드
+            - 컴파일 타임이 아닌 런타임에 동적으로 타입을 분석하고 정보를 가져오므로 JVM을 최적화할 수 없기 때문
+         - 추상화가 깨진다
+            - 직접 접근할 수 없는 private 인스턴스 변수, 메서드에 접근하기 때문에 내부를 노출
+         - 컴파일 에러가 아닌 런타임시에 에러가 발생하기 때문에 상당한 주의가 필요
+- DinamicProxy
+   - 자바를 통해 다이나믹하게 프록시를 구현하는 방법
+      - 직접구현
+         - 인터페이스 직접 구현
+         - 프록시 클래스 내에 중복 발생
+      - Java.lang.reflect.Proxy
+         newProxyInstance() 메서드
+         - 일일이 구현 문제 - reflection API가 해결
+         - 중복 - InvocationHandler가 해결
+   - CGLIB((Code Generator Library))
+      - 동적 프록시는 인터페이스가 있어야 프록시 클래스의 자동생성이 가능
+      - CGLIB은 인터페이스가 없어도 자동으로 프록시 클래스를 만들어 줄 수 있음
+      - 바이트코드를 조작하여 프록시 클래스를 생성해주기 때문에 동적 프록시보다 성능적으로도 좋다
+      - CGLIB은 Enhancer클래스를 통해 Proxy클래스를 생성
+   - Spring 프록시팩터리
+      - JDK 동적프록시
+         - 인터페이스가 존재하는 경우
+            - invocationHaandler
+      - CGLIB
+         - 인터페이스가 존재하지 않는 경우
+            - MethodInterceptor
+      - 프록시팩터리(Spring)
+         - 일관된 방법으로 사용자가 편리하게 사용할 수 있는 추상화 된 기술을 제공
+         - 특징
+            - 프록시 팩토리는 해당 타겟의 인터페이스 유무를 확인하고 프록시 기술을 선택
+            - 프록시 팩토리를 사용하면 JDK 동적 프록시와 CGLIB으로 나누어 관리하지 않고,
+               프록시 팩토리를 통해 일관된 방법으로 프록시를 만들 수 있습니다.
+         - 기능
+            - 프록시 반환
+            - 부가기능 처리(Advice)
+- 자바 8
+   - Generic ^8480f371-0736-355f
+      - 데이터 형식에 의존하지 않고, 하나의 값이 여러 다른 데이터 타입들을 가질 수 있도록 하는 방법
+      - 클래스 내부에서 지정하는 것이 아닌 외부에서 사용자에 의해 지정되는 것
+      - 특정(Specific) 타입
+         일반(Generic) 타입
+      - 타입의 경계를 지정하고, 컴파일 때 해당 타입으로 캐스팅하여 매개변수화 된 유형을 삭제하는 것
+      - 장단점
+         - 장점
+            - 제네릭을 사용하면 잘못된 타입이 들어올 수 있는 것을 컴파일 단계에서 방지할 수 있다
+            - 클래스 외부에서 타입을 지정해주기 때문에 따로 타입을 체크하고 변환해줄 필요가 없다. 즉, 관리하기가 편하다.
+            - 비슷한 기능을 지원하는 경우 코드의 재사용성이 높아진다.
+      - 구현
+         - 제네릭 메소드
+            - public `<T>` T genericMethod(T o) {
+         - 제네릭 클래스
+            - class ClassName<K, V>
+      - 제한된 제네릭 & 와일드카드
+         - extends
+            - 상한
+               - ? extneds T
+               - K extends T
+            - T 타입을 포함한 자식(자손) 타입만 가능하다는 의미
+         - super
+            - 하한
+               - ? super T
+               - K super T
+            - T 타입을 포함한 부모(조상) 타입만 가능하다는 의미
+         - `<?>` == `<? extends Object>`
+         - K는 특정 타입으로 지정이 되지만, ?는 타입이 지정되지 않는다는 의미
+         - 특정 타입의 데이터를 조작하고자 할 경우에는 K 같이 특정 제네릭 인수로 지정을 해주어야 한다.
+         - 즉 와일드카드로 하게되면 읽기제한 쓰기제한 등이 생김
+   - Stream & Lambda
+      - lambda
+         - 정의
+            - 메소드를 하나의 식(Expression)으로 표현한 것
+            - 익명메소드(함수) 생성 문법
+               - 메소드를 지칭하는 명칭(메소드명)없이 구현부만으로 선언하는 것
+         - 특징
+            - JAVA의 메소드는 메소드 자체로 혼자 선언하여 쓰일 수 없다.
+               무조건 Class 구성멤버로 선언되어야 한다
+            - 람다식을 통해서 생성되는 것은 메소드 자체가 아닌 실행문(메소드)을 가진 객체
+         - 문법
+            - 타겟 타입
+               - 컴파일러는 람다식을 해석하여 자동으로 익명구현객체로 만든다
+               - @FuntionalInterface
+                  - 람다식의 타겟 타입이 될 인터페이스는 2개 이상의 추상 메소드를 가지면 안된다
+                  - 컴파일러가 해당 람다식이 타겟 타입의 어떤 메소드를 구현한 것인지 알 수 없기 때문
+         - 장단점
+            - 단점
+               - 익명함수 기반이기에 디버깅이 어려운 부분이 있다
+                  - 코드가 복잡해질수록 문제발생 지점을 확인하기 힘들 수 있다
+      - stream
+         - 특징
+            - 선언형으로 데이터 컬렉션을 반복적으로 처리할 수 있다
+            - lambda식을 지원
+            - 중간연산(filter,map..)과 최종연산(foreach,count,collect..)이 있다
+            - 자바 6이전까지는
+               데이터 컬렉션 요소를 순차적으로 처리하기 위해 Iterator라는 반복자를 사용
+            - stream을 활용하면 코드가 훨씬 단순해지게된다
+         - 종류 ^c1dee2b3-52c4-92f6
+            - 생성
+               - 순차 스트림
+               - 병렬 스트림
+            - 가공
+               - Filtering
+                  - 조건에 맞는 원소 추출
+               - Mapping
+                  - 객체의 각 원소들에 대해 결과와 매칭시킴
+               - Sorting
+                  - 순서에 맞게 원소를 정렬
+               - Iterating
+                  - 원소를 읽어들임
+            - 처리
+               - Calculating
+               - Reducing
+               - Collecting
+               - Matching
+               - Iterating
+            - 결과
+               - 함수 처리 후 추출된 결과를 단말함수로 출력등을 해주는 과정
+               - forEach
+               - ifPresent
+               - anyMatch/allMatch/noneMatch
+                  - True리턴시 종료
+      - Loop
+         - For-loop(external iterator/정통방식)
+            - 어느지점에서든 items값의 변경이 가능하며 루프안에서 items의 상태변화를 시킬 수 있다
+         - Foreach(internal iterator/lambda방식)
+            - lambda식 안의 로직에서는 item요소에 대해서만 값을 처리할 수 있다
+   - 함수형프로그래밍
+      - 자료 처리를 수학적 함수의 계산으로 취급하고 상태와 가변 데이터를 멀리하는 프로그래밍 패러다임의 하나
+      - OOP와 반대되는 개념이 아니다
+   - functional Interface
+      - 자바에서 제공하는 함수형 인터페이스
+      - 기본 인터페이스 중 적합한 게 없다면 새로 만들어서 사용하면 된다

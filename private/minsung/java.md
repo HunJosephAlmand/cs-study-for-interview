@@ -351,3 +351,121 @@ JIT 컴파일러 : 반복되는 바이트코드를 캐싱한 다음, 해당 바�
   * override 불가능
 * 클래스에 선언했을 경우
   * 상속받는 하위 클래스(스프링에서 만들어주는 프록시 객체 등) 작성 불가능
+
+
+
+
+
+## Generic
+
+* type에 유연하면서도 안전한 코드를 작성할 수 있도록 해주는 기능
+* 해당 클래스, 메서드에서 다루는 타입이 object 일 경우, 내부 타입이 어떤 것이 정확하게 알 수 있는 방법은 없음.
+  * java.util.Collection
+* 클래스, 메서드가 다루는 타입을 정확하게 명시해서, 컴파일러가 타입에 안전한 코드인지 확인할 수 있게 한다.
+
+#### Bounded Generic
+
+* 타입 변수의 범위를 제한할 수 있다.
+
+* Upper bound
+
+  * T extends supertype
+  * supertype이나 supertype을 상속받는 타입만 매개변수로 사용할 수 있다.
+
+* Wildcard
+
+  * ?로 표기한다.
+
+  * 제네릭으로 사용할 수 있다.
+
+  * 왜 사용하지?
+
+  * Object는 모든 타입의 상위 타입이다. 하지만 Object 타입을 제네릭 변수로 사용하는 타입은 다른 타입을 제네릭 변수로 사용하는 타입의 상위 클래스가 아니다.
+
+    * 공변성 X
+
+    * 제네릭 변수인 타입의 서브 타입을 가진 클래스 또한 포함시키기 위해
+
+    * ```java
+      public static void paintAllBuildings(List<? extends Building> buildings) // 그냥 Building 변수를 사용하면 안 된다.
+      ```
+
+    * Upper bound wildcard
+
+      * ? extends T
+      * T 타입의 superclass만 제네릭 변수로 올 수 있음
+
+    * Lower bound wildcard
+
+      * ? super T
+      * T타입의 상위 타입만 제네릭 변수로 올 수있음
+
+#### Type Erasure
+
+* 런타임 환경에서는 제네릭 관련 overhead가 발생하지 않는다.
+  * 컴파일 과정에서 제네릭 관련 코드들을 삭제하기 때문
+  * 타입 변수가 unbounded일 경우 Object로
+  * 타입 변수가 bounded일 경우 해당 bounded type으로
+
+* List<T> -> List
+* public <T extends Building> void genericMethod(T t) 
+  * -> pulbic void genericMethod(Building T)
+
+
+
+## Stream
+
+* 순서를 가진 원소들의 모임
+  * 순서/병렬 연산을 지원한다.
+  * 반복문 처리 대체
+    * 컬렉션 외부에서 처리
+  * 스트림은
+    * 컬렉션 내부에서 처리
+    * 반복문 내부 구현을 드러내지 않는다.
+    * parallelStream()으로 멀티 스레드 연산을 할 수 있다.
+
+## Lambda
+
+* 메서드를 간단한 식으로 표현하기 위해 사용
+* Functional Interface 구현체
+  * 이름이 존재하지 않는다.
+  * 매개 변수를 받아서 연산을 수행하거나 값을 반환시키는 코드로 표현
+* 다만 성능 향상을 위해 익명 클래스로 컴파일 되지 않음.
+  * lambda 표현식에 있는 this(해당 메서드를 가진 클래스)와 익명 클래스의 this(익명 클래스)는 다르다.
+
+
+
+## Reflection
+
+* 실행되는 자바 프로그램의 메타데이터를 프로그래밍적으로 활용할 수 있게 하는 기능
+  * 클래스 이름
+  * 메서드 이름
+  * 필드 이름
+  * 붙어 있는 애너테이션
+* 프레임워크에서 적극적으로 사용
+  * 특정 annotation이 붙은 클래스만 실행한다(@Test)
+* 접근 제어자로 인해 접근이 불가능한 필드에 접근할 수 있음
+* 기본 생성자가 무조건 있어야 한다.
+  * Jpa Entity NoArgsConstructor
+* 추상화 붕괴, 예외 처리 로직이 코드를 더럽힌다.
+
+
+
+## Dynamic Proxy
+
+* 프록시 기존에 존재하는 함수에 부가적인 기능을 추가해주는 클래스
+* 자바 코드를 활용해서 프로그래밍해서 구현하는 클래스
+* 모든 메서드 호출을 하나의 핸들러(invoke())에 모아놓는다.
+* JDK dynamic proxy  : 하나의 클래스의 하나의 메서드로 여러 클래스의 여러 메서드들에 추가적인 기능을 부가할 수 있는 클래스
+  * InvocationHandler 인터페이스 구현체로 프록시 클래스 구현
+  * 공개 메서드가 하나이기 때문에 lambda 표현식으로도 포현할 수 있다.
+* JDK 동적 프록시
+  * 프록시 대상 클래스의 상위 인터페이스가 존재해야 사용할 수 있다.
+  * 인터페이스가 반드시 있어야 한다.(구현 기반)
+* CGLIB
+  * 구체 클래스 기반(상속 기반)
+  * extends된 프록시 클래스이기 떄문에 대상 클래스가 final일 경우 만들 수 가 없다.
+* 스프링에서는 ProxyFactory로 프록시를 생성(JDK, CGLIB 병행)
+  * 전부 다 CGLIB로 만드는 것이 Default(Spring Boot 2.0~)
+  * 이전 버전의 경우 인터페이스가 있을 경우 jdk, 없을 경우에는 cglib
+* Proxy.newProxyInstance()로 프록시 클래스 생성 가능

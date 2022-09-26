@@ -168,7 +168,7 @@ mindmap-plugin: basic
    - 자바 바이트코드는 자바 인터프리터를 기계어로 번역되어 한줄씩 실행된다
    - 처음에는 인터프리터 언어로써 사용되다가 성능향상을 위해 JIT 컴파일러를 추가하여 컴파일 언어의 장점을 가져왔다고 한다
 
-## Java LTS 버전 ^037e2495-b631-4e82
+## Java LTS 버전
 - Java 8
    - 함수형프로그래밍 지원
       - 람다표현식
@@ -221,6 +221,7 @@ mindmap-plugin: basic
          - 추상화가 깨진다
             - 직접 접근할 수 없는 private 인스턴스 변수, 메서드에 접근하기 때문에 내부를 노출
          - 컴파일 에러가 아닌 런타임시에 에러가 발생하기 때문에 상당한 주의가 필요
+         - 기본생성자가 꼭 있어야 함(NoArgsConstructor)
 - DinamicProxy
    - 자바를 통해 다이나믹하게 프록시를 구현하는 방법
       - 직접구현
@@ -252,7 +253,7 @@ mindmap-plugin: basic
             - 프록시 반환
             - 부가기능 처리(Advice)
 - 자바 8
-   - Generic ^8480f371-0736-355f
+   - Generic
       - 데이터 형식에 의존하지 않고, 하나의 값이 여러 다른 데이터 타입들을 가질 수 있도록 하는 방법
       - 클래스 내부에서 지정하는 것이 아닌 외부에서 사용자에 의해 지정되는 것
       - 특정(Specific) 타입
@@ -282,7 +283,7 @@ mindmap-plugin: basic
          - `<?>` == `<? extends Object>`
          - K는 특정 타입으로 지정이 되지만, ?는 타입이 지정되지 않는다는 의미
          - 특정 타입의 데이터를 조작하고자 할 경우에는 K 같이 특정 제네릭 인수로 지정을 해주어야 한다.
-         - 즉 와일드카드로 하게되면 읽기제한 쓰기제한 등이 생김
+         - E는 지정한것만 ?는 지정하지 않은것도
    - Stream & Lambda
       - lambda
          - 정의
@@ -336,6 +337,7 @@ mindmap-plugin: basic
                - ifPresent
                - anyMatch/allMatch/noneMatch
                   - True리턴시 종료
+      - 람다 vs 익명클래스
       - Loop
          - For-loop(external iterator/정통방식)
             - 어느지점에서든 items값의 변경이 가능하며 루프안에서 items의 상태변화를 시킬 수 있다
